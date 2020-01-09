@@ -1,0 +1,14 @@
+@font-face {
+  font-family: 'Roboto Bold';
+  src: url('./fonts/Roboto-Bold.ttf');
+}
+
+button[type='button'] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+body {
+  background-color: rgba(0, 0, 0, 0.1);
+}

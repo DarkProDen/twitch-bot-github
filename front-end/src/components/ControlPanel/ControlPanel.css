@@ -1,0 +1,90 @@
+.control-panel {
+  margin: 20px;
+  font: 18pt Arial;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#skipometer {
+  position: sticky;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 20px;
+  align-self: flex-start;
+  background-color: rgb(200, 234, 255);
+  padding: 15px;
+  cursor: pointer;
+  margin-bottom: -66px;
+  border-radius: 10px;
+  border: 2px solid lightskyblue;
+}
+
+.control-panel__header {
+  margin: 20px;
+  font: 24pt Arial;
+  text-align: center;
+}
+
+input {
+  font: 18pt Arial;
+}
+
+.control-panel__form {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+}
+
+.field {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.field input {
+  margin-left: 20px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-around;
+  margin: 30px;
+}
+
+.buttons input {
+  border-radius: 10px;
+  border: 2px solid lightskyblue;
+  padding: 10px 15px;
+}
+
+#start {
+  background-color: rgb(203, 253, 203);
+  border-color: lightgreen;
+}
+
+#pause {
+  background-color: rgb(200, 234, 255);
+  border-color: lightskyblue;
+}
+
+#reset {
+  background-color: rgb(255, 213, 213);
+  border-color: red;
+}
+
+.logs {
+  display: inline-block;
+}
+
+.logs__element {
+  padding: 3px 8px;
+}
+
+.logs__element--red {
+  background-color: rgb(255, 55, 55);
+}
+.logs__element--green {
+  background-color: lightgreen;
+}
