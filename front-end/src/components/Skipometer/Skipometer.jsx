@@ -20,7 +20,7 @@ class Skipometer extends React.Component {
 
   render() {
     return (
-      <div className="skipometer skipometer">
+      <div className="skipometer">
         <div
           className={
             'skipometer__progress-bar' +
@@ -57,6 +57,7 @@ class Skipometer extends React.Component {
               ? ' skipometer__time--timeout'
               : '')
           }
+          hidden={!this.state.skipometer.enableTimer}
         >
           {numberToTime(this.state.skipometer.timeLeft)}
         </div>

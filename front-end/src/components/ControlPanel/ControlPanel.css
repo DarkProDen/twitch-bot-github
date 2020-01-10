@@ -47,6 +47,11 @@ input {
   margin-left: 20px;
 }
 
+.field input[type='checkbox'] {
+  height: 28px;
+  width: 28px;
+}
+
 .buttons {
   display: flex;
   justify-content: space-around;

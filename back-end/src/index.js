@@ -24,11 +24,14 @@ bot.client.on('message', (channel, tags, message, self) => {
 
   if (self) return;
 
-  if (skipometer.voting && !skipometer.viewerVoted(username)) {
+  if (skipometer.voting /*&& !skipometer.viewerVoted(username)*/) {
     if (command === '!skip' || command === '!скип') {
       skipometer.addVote(new Vote(username, true));
     }
-    if (command === '!save' || command === '!сейв') {
+    if (
+      (command === '!save' || command === '!сейв') &&
+      skipometer.countSkipNumber() > 0
+    ) {
       skipometer.addVote(new Vote(username, false));
     }
   }

@@ -24,6 +24,8 @@ class Skipometer {
     this.timer = null;
     this.previousState = states.STOP;
     this.pauses = [];
+    this.enableTimer = true;
+    this.saveValue = 1;
   }
 
   sendToClients() {
@@ -41,7 +43,9 @@ class Skipometer {
             startTime: this.startTime,
             timeLeft: this.timeLeft,
             votes: this.votes,
-          },
+            enableTimer: this.enableTimer,
+            saveValue: this.saveValue
+          }
         })
       );
     });
@@ -66,7 +70,7 @@ class Skipometer {
       if (currentVote.skip) {
         return ++accumulator;
       } else {
-        return --accumulator;
+        return accumulator - this.saveValue;
       }
     }, 0);
   }
@@ -81,16 +85,22 @@ class Skipometer {
     this.skipNumber = skipometer.skipNumber;
     this.previousState = this.state;
     this.state = skipometer.state;
+    this.enableTimer = skipometer.enableTimer;
+    this.saveValue = skipometer.saveValue;
 
-    if (this.state === states.TIMING) {
+    if (this.state === states.RUNNING) {
       const tick = () => {
         const pausedTime = this.pauses.reduce(
-          (accumulator, currentPause) => accumulator + currentPause.end - currentPause.start,
+          (accumulator, currentPause) =>
+            accumulator + currentPause.end - currentPause.start,
           0
         );
 
         this.timeLeft =
-          timeToNumber(this.initialTimeLeft) + this.startTime - Date.now() + pausedTime;
+          timeToNumber(this.initialTimeLeft) +
+          this.startTime -
+          Date.now() +
+          pausedTime;
 
         if (this.timeLeft <= timeToNumber(this.startVotingTime)) {
           this.voting = true;
@@ -111,21 +121,27 @@ class Skipometer {
         this.previousState === states.TIMEOUT ||
         this.previousState === states.SKIPPED
       ) {
-        this.startTime = Date.now() - 1;
-        this.pauses = [];
         this.votes = [];
-        this.timer = setInterval(tick, 1000);
-        tick();
+        this.pauses = [];
+
+        if (this.enableTimer) {
+          this.startTime = Date.now() - 1;
+          this.timer = setInterval(tick, 1000);
+          tick();
+        } else {
+          this.voting = true;
+          this.startTime = null;
+        }
       }
 
-      if (this.previousState === states.PAUSE) {
+      if (this.previousState === states.PAUSE && this.enableTimer) {
         this.pauses[this.pauses.length - 1].end = Date.now();
         this.timer = setInterval(tick, 1000);
         tick();
       }
     }
 
-    if (this.state === states.PAUSE) {
+    if (this.state === states.PAUSE && this.enableTimer) {
       if (this.previousState !== states.PAUSE) {
         clearInterval(this.timer);
         this.pauses.push(new Pause(Date.now()));
