@@ -23,17 +23,20 @@ class ControlPanel extends React.Component {
     this.setState({ skipometer: skipometer });
   }
 
-  setSkipometerPropsFromInputs() {
+  setStateFromInputs() {
     this.updateSkipometer(skipometer => {
       skipometer.caption = document.getElementById('caption').value;
+
+      skipometer.enableTimer = document.getElementById('enableTimer').checked;
       skipometer.initialTimeLeft = document.getElementById(
         'initialTimeLeft'
       ).value;
       skipometer.startVotingTime = document.getElementById(
         'startVotingTime'
       ).value;
+
       skipometer.skipNumber = document.getElementById('skipNumber').value;
-      skipometer.enableTimer = document.getElementById('enableTimer').checked;
+      skipometer.allowRevote = document.getElementById('allowRevote').checked;
       skipometer.saveValue = document.getElementById('saveValue').value;
     });
   }
@@ -71,7 +74,7 @@ class ControlPanel extends React.Component {
               type="checkbox"
               defaultChecked={this.state.skipometer.enableTimer}
               onInput={() => {
-                this.setSkipometerPropsFromInputs();
+                this.setStateFromInputs();
                 this.sendStateToWSS();
               }}
               disabled={
@@ -81,7 +84,7 @@ class ControlPanel extends React.Component {
             ></input>
           </label>
           <div className="field">
-            Time left:
+            Initial time left:
             <input
               id="initialTimeLeft"
               type="time"
@@ -95,7 +98,7 @@ class ControlPanel extends React.Component {
             ></input>
           </div>
           <div className="field">
-            Start of voting:
+            Start voting:
             <input
               id="startVotingTime"
               type="time"
@@ -109,7 +112,7 @@ class ControlPanel extends React.Component {
             ></input>
           </div>
           <div className="field">
-            Number of skips:
+            Skip number:
             <input
               id="skipNumber"
               type="number"
@@ -117,6 +120,18 @@ class ControlPanel extends React.Component {
               defaultValue={this.state.skipometer.skipNumber}
             ></input>
           </div>
+          <label className="field" htmlFor="allowRevote">
+            Allow revote:
+            <input
+              id="allowRevote"
+              type="checkbox"
+              defaultChecked={this.state.skipometer.allowRevote}
+              onInput={() => {
+                this.setStateFromInputs();
+                this.sendStateToWSS();
+              }}
+            ></input>
+          </label>
           <div className="field">
             Save value: {this.state.skipometer.saveValue}
             <input
@@ -124,24 +139,16 @@ class ControlPanel extends React.Component {
               type="range"
               min="0"
               max="1"
-              step="0.25"
+              step="0.5"
               defaultValue={this.state.skipometer.saveValue}
+              disabled={
+                this.state.skipometer.state === states.RUNNING ||
+                this.state.skipometer.state === states.PAUSE
+              }
               onInput={() => {
-                this.setSkipometerPropsFromInputs();
-                this.sendStateToWSS();
+                this.setStateFromInputs();
               }}
             ></input>
-            {/* <InputRange
-              id="saveValue"
-              maxValue={1}
-              minValue={0}
-              step={0.25}
-              value={this.state.value}
-              onChange={() => {
-                this.setSkipometerPropsFromInputs();
-                this.sendStateToWSS();
-              }}
-            /> */}
           </div>
           <div className="buttons">
             <input
@@ -150,7 +157,7 @@ class ControlPanel extends React.Component {
               value="Start"
               hidden={this.state.skipometer.state === states.RUNNING}
               onClick={() => {
-                this.setSkipometerPropsFromInputs();
+                this.setStateFromInputs();
                 this.updateSkipometer(skipometer => {
                   skipometer.state = states.RUNNING;
                 });
@@ -180,20 +187,23 @@ class ControlPanel extends React.Component {
                 this.updateSkipometer(skipometer => {
                   skipometer.state = states.STOP;
                 });
-                this.setSkipometerPropsFromInputs();
+                this.setStateFromInputs();
                 this.sendStateToWSS();
               }}
             />
           </div>
         </form>
         <div className="logs">
-          {this.state.skipometer.votes.map(vote => (
+          {this.state.skipometer.votes.map((vote, index) => (
             <div
+              key={'vote#' + index}
               className={
                 'logs__element' +
                 (vote.skip ? ' logs__element--red' : ' logs__element--green')
               }
-            >{`${vote.nickname}: ${vote.skip ? 'skip' : 'save'}`}</div>
+            >{`${vote.nickname}: ${
+              vote.skip ? 'skip +1' : 'save -' + this.state.skipometer.saveValue
+            }`}</div>
           ))}
         </div>
       </div>

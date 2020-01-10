@@ -41,6 +41,7 @@ input {
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
+  min-height: 34px;
 }
 
 .field input {
@@ -50,6 +51,10 @@ input {
 .field input[type='checkbox'] {
   height: 28px;
   width: 28px;
+}
+
+.field input[type='time'] {
+  height: 30px;
 }
 
 .buttons {

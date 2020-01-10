@@ -1,31 +1,68 @@
-const states = require('../misc/states');
-const numberToTime = require('../misc/numberToTime');
 const timeToNumber = require('../misc/timeToNumber');
 const Pause = require('./Pause');
+const Vote = require('./Vote');
+const states = require('../misc/states');
 
 class Skipometer {
   constructor(
     webSocketServer,
+    bot,
     caption = '',
+    enableTimer = true,
     initialTimeLeft = '01:00:00',
     startVotingTime = '00:30:00',
-    skipNumber = 10
+    skipNumber = 10,
+    allowRevote = true,
+    saveValue = 0.5
   ) {
-    this.webSocketServer = webSocketServer;
     this.caption = caption;
+    this.enableTimer = enableTimer;
     this.initialTimeLeft = initialTimeLeft;
     this.startVotingTime = startVotingTime;
+
     this.skipNumber = skipNumber;
+    this.allowRevote = allowRevote;
+    this.saveValue = saveValue;
+
+    this.previousState = states.STOP;
     this.state = states.STOP;
     this.voting = false;
     this.votes = [];
     this.startTime = null;
     this.timeLeft = timeToNumber(this.initialTimeLeft);
-    this.timer = null;
-    this.previousState = states.STOP;
     this.pauses = [];
-    this.enableTimer = true;
-    this.saveValue = 1;
+    this.timer = null;
+
+    this.webSocketServer = webSocketServer;
+    webSocketServer.on('connection', ws => {
+      ws.on('message', message => {
+        this.processDataFromControlPanel(message);
+        this.sendToClients();
+      });
+
+      this.sendToClients();
+    });
+
+    this.bot = bot;
+    bot.client.on('message', (channel, tags, message, self) => {
+      const username = tags.username;
+      const command = message.trim().toLowerCase();
+
+      if (self) return;
+
+      if (this.voting) {
+        if (command === '!skip' || command === '!скип') {
+          this.tryAddOrChangeVote(new Vote(username, true));
+        }
+
+        if (
+          (command === '!save' || command === '!сейв') &&
+          this.countSkipNumber() > 0
+        ) {
+          this.tryAddOrChangeVote(new Vote(username, false));
+        }
+      }
+    });
   }
 
   sendToClients() {
@@ -34,17 +71,21 @@ class Skipometer {
         JSON.stringify({
           skipometer: {
             caption: this.caption,
+
+            enableTimer: this.enableTimer,
             initialTimeLeft: this.initialTimeLeft,
             startVotingTime: this.startVotingTime,
+
             skipNumber: this.skipNumber,
-            currentSkipNumber: this.countSkipNumber(),
+            allowRevote: this.allowRevote,
+            saveValue: this.saveValue,
+
             state: this.state,
             voting: this.voting,
             startTime: this.startTime,
             timeLeft: this.timeLeft,
             votes: this.votes,
-            enableTimer: this.enableTimer,
-            saveValue: this.saveValue
+            currentSkipNumber: this.countSkipNumber()
           }
         })
       );
@@ -62,17 +103,38 @@ class Skipometer {
       this.state = states.SKIPPED;
       this.voting = false;
     }
+
     this.sendToClients();
   }
 
+  changeVote(vote) {
+    const voteToChange = this.votes.find(
+      item => item.nickname === vote.nickname
+    );
+
+    voteToChange.skip = vote.skip;
+
+    this.sendToClients();
+  }
+
+  tryAddOrChangeVote(vote) {
+    if (!this.viewerVoted(vote.nickname)) {
+      this.addVote(vote);
+    } else if (this.allowRevote) {
+      this.changeVote(vote);
+    }
+  }
+
   countSkipNumber() {
-    return this.votes.reduce((accumulator, currentVote) => {
+    const result = this.votes.reduce((accumulator, currentVote) => {
       if (currentVote.skip) {
         return ++accumulator;
       } else {
         return accumulator - this.saveValue;
       }
     }, 0);
+
+    return result > 0 ? result : 0;
   }
 
   processDataFromControlPanel(message) {
@@ -146,8 +208,6 @@ class Skipometer {
         clearInterval(this.timer);
         this.pauses.push(new Pause(Date.now()));
       }
-
-      this.sendToClients();
     }
 
     if (this.state === states.STOP) {
@@ -157,7 +217,6 @@ class Skipometer {
       this.pauses = [];
       this.votes = [];
       this.voting = false;
-      this.sendToClients();
     }
   }
 }
