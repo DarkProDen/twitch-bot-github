@@ -55,10 +55,7 @@ class Skipometer {
           this.tryAddOrChangeVote(new Vote(username, true));
         }
 
-        if (
-          (command === '!save' || command === '!сейв') &&
-          this.countSkipNumber() > 0
-        ) {
+        if ((command === '!save' || command === '!сейв') && this.countSkipNumber() > 0) {
           this.tryAddOrChangeVote(new Vote(username, false));
         }
       }
@@ -85,8 +82,8 @@ class Skipometer {
             startTime: this.startTime,
             timeLeft: this.timeLeft,
             votes: this.votes,
-            currentSkipNumber: this.countSkipNumber()
-          }
+            currentSkipNumber: this.countSkipNumber(),
+          },
         })
       );
     });
@@ -98,30 +95,32 @@ class Skipometer {
 
   addVote(vote) {
     this.votes.push(vote);
-    if (this.countSkipNumber() >= this.skipNumber) {
-      clearInterval(this.timer);
-      this.state = states.SKIPPED;
-      this.voting = false;
-    }
-
-    this.sendToClients();
   }
 
   changeVote(vote) {
-    const voteToChange = this.votes.find(
-      item => item.nickname === vote.nickname
-    );
+    const voteToChange = this.votes.find(item => item.nickname === vote.nickname);
 
     voteToChange.skip = vote.skip;
-
-    this.sendToClients();
   }
 
   tryAddOrChangeVote(vote) {
+    let changed = false;
+
     if (!this.viewerVoted(vote.nickname)) {
       this.addVote(vote);
+      changed = true;
     } else if (this.allowRevote) {
       this.changeVote(vote);
+      changed = true;
+    }
+
+    if (changed) {
+      if (this.countSkipNumber() >= this.skipNumber) {
+        clearInterval(this.timer);
+        this.state = states.SKIPPED;
+        this.voting = false;
+      }
+      this.sendToClients();
     }
   }
 
@@ -148,21 +147,18 @@ class Skipometer {
     this.previousState = this.state;
     this.state = skipometer.state;
     this.enableTimer = skipometer.enableTimer;
+    this.allowRevote = skipometer.allowRevote;
     this.saveValue = skipometer.saveValue;
 
     if (this.state === states.RUNNING) {
       const tick = () => {
         const pausedTime = this.pauses.reduce(
-          (accumulator, currentPause) =>
-            accumulator + currentPause.end - currentPause.start,
+          (accumulator, currentPause) => accumulator + currentPause.end - currentPause.start,
           0
         );
 
         this.timeLeft =
-          timeToNumber(this.initialTimeLeft) +
-          this.startTime -
-          Date.now() +
-          pausedTime;
+          timeToNumber(this.initialTimeLeft) + this.startTime - Date.now() + pausedTime;
 
         if (this.timeLeft <= timeToNumber(this.startVotingTime)) {
           this.voting = true;

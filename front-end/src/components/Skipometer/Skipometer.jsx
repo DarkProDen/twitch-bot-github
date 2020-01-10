@@ -36,19 +36,18 @@ class Skipometer extends React.Component {
             )
           }
         >
+          <div className="skipometer__progress-bar__background"></div>
           <div
+            className="skipometer__progress-bar__progress"
             style={{
               width: `${(this.state.skipometer.currentSkipNumber /
                 this.state.skipometer.skipNumber) *
-                100}%`
+                100}%`,
             }}
           ></div>
-          {this.state.skipometer.currentSkipNumber}/
-          {this.state.skipometer.skipNumber}
+          {this.state.skipometer.currentSkipNumber}/{this.state.skipometer.skipNumber}
         </div>
-        <div className="skipometer__caption">
-          {this.state.skipometer.caption}
-        </div>
+        <div className="skipometer__caption">{this.state.skipometer.caption}</div>
         <div
           className={
             'skipometer__time' +
