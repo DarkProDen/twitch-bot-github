@@ -1,6 +1,17 @@
 import React from 'react';
+import styled from 'styled-components';
 import './ControlPanel.css';
 import states from '../../misc/states';
+import Button from '../Button/Button';
+
+const DeltaTimeWrap = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  & input {
+    width: 110px;
+  }
+`;
 
 class ControlPanel extends React.Component {
   constructor(props) {
@@ -97,6 +108,19 @@ class ControlPanel extends React.Component {
               }
             ></input>
           </div>
+          <div style={{ marginTop: '10px' }}>
+            <DeltaTimeWrap>
+              <Button caption="+1 min" />
+              <Button caption="+10 min" />
+              <Button caption="+1 hour" />
+            </DeltaTimeWrap>
+            <DeltaTimeWrap>
+              <Button caption="-1 min" />
+              <Button caption="-10 min" />
+              <Button caption="-1 hour" />
+            </DeltaTimeWrap>
+          </div>
+
           <div className="field">
             Start voting:
             <input
