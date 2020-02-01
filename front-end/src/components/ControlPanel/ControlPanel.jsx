@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import './ControlPanel.css';
 import states from '../../misc/states';
+import numberToTime from '../../misc/numberToTime';
+import timeToNumber from '../../misc/timeToNumber';
 import Button from '../Button/Button';
 
 const DeltaTimeWrap = styled.div`
@@ -50,6 +52,17 @@ class ControlPanel extends React.Component {
       skipometer.allowRevote = document.getElementById('allowRevote').checked;
       skipometer.saveValue = document.getElementById('saveValue').value;
     });
+  }
+
+  changeTime(deltaTime) {
+    const skipometer = this.state.skipometer;
+    const newTime = timeToNumber(skipometer.initialTimeLeft) + deltaTime;
+
+    if (newTime >= 0) {
+      skipometer.initialTimeLeft = numberToTime(newTime);
+      this.setState({ skipometer: skipometer });
+      this.sendStateToWSS();
+    }
   }
 
   sendStateToWSS() {
@@ -110,14 +123,44 @@ class ControlPanel extends React.Component {
           </div>
           <div style={{ marginTop: '10px' }}>
             <DeltaTimeWrap>
-              <Button caption="+1 min" />
-              <Button caption="+10 min" />
-              <Button caption="+1 hour" />
+              <Button
+                caption="+1 min"
+                callback={() => {
+                  this.changeTime(60 * 1000);
+                }}
+              />
+              <Button
+                caption="+10 min"
+                callback={() => {
+                  this.changeTime(600 * 1000);
+                }}
+              />
+              <Button
+                caption="+1 hour"
+                callback={() => {
+                  this.changeTime(60 * 60 * 1000);
+                }}
+              />
             </DeltaTimeWrap>
             <DeltaTimeWrap>
-              <Button caption="-1 min" />
-              <Button caption="-10 min" />
-              <Button caption="-1 hour" />
+              <Button
+                caption="-1 min"
+                callback={() => {
+                  this.changeTime(-60 * 1000);
+                }}
+              />
+              <Button
+                caption="-10 min"
+                callback={() => {
+                  this.changeTime(-600 * 1000);
+                }}
+              />
+              <Button
+                caption="-1 hour"
+                callback={() => {
+                  this.changeTime(-60 * 60 * 1000);
+                }}
+              />
             </DeltaTimeWrap>
           </div>
 
